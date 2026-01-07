@@ -1,0 +1,90 @@
+== ClickHouse Sink
+
+ClickHouse Sink is a module which takes Avro / Parquet files created by transformation of data from Cassandra cluster, and it will "pipe it" to ClickHouse. The result of doing so is that it is possible to e.g. remotely scan a cluster (via Sidecars) on a physically distinct machine and on that very same machine, we insert such a data to ClickHouse running yet on different machines.
+
+This way, we can build a transformation pipeline while completely decoupling source and destination of data.
+
+[source,bash]
+----
+
+[] -> physically distinct machine
+
+[C* node 1 + Sidecar] \                    / [replica]
+[C* node 2 + Sidecar]  - > [transformer] ->  [ClickHouse node]
+[C* node 3 + Sidecar] /                    \ [replica]
+----
+
+ClickHouse Sink is a module which integrates with core transformation module via Java SPI by mere placing its jar to core's class path.
+
+Let's guide a reader through an example.
+
+We have Cassandra table like:
+
+----
+CREATE TABLE IF NOT EXISTS cassandra_easy_stress.shuffled_text (
+    key text PRIMARY KEY,
+    value text
+);
+----
+
+This table in ClickHouse will have this schema (table has to be created upfront):
+
+----
+CREATE TABLE IF NOT EXISTS clickhouse_db.shuffled_text (
+    key String,
+    value String
+) ENGINE = MergeTree() ORDER BY key;
+----
+
+To transform all data from Cassandra's SSTables to ClickHouse (Cassandra node can be offline, SSTables just need to be in a directory), we have in practice two main methods, when Cassandra Sidecar is not used.
+
+=== ClickHouseFileSink
+
+File sink method takes data from SSTables, converts data to Parquet files and then these Parquet files are inserted into ClickHouse. That means that there is a Parquet file created as an intermediary because ClickHouse does not know, obviously, how to ingest SSTables, but it knows how ingest Parquet files.
+
+To set this up, you need to specify sink configuration file, and you need to place
+ClickHouse sink JAR onto classpath of a transformer tool itself. Transformer tool
+discovers sink automatically. A sink you want to use needs to be also specified in sink
+configuration file.
+
+The content of such a file is like this:
+
+----
+name=com.instaclustr.transformer.clickhouse.ClickHouseFileSink
+endpoint=http://172.19.0.3:8123
+username=clickhouse
+password=clickhouse
+database=clickhouse_db
+table=shuffled_text
+remove_file_after_processed=true
+----
+
+* `name` - tells what sink implementation to use.
+* `endpoint` - where is ClickHouse exposing its HTTP API we will be sending Parquet files to
+* `usernam`, `password` - credentials
+* `database` - name of database to use
+* `table` - table to insert data into
+* `remove_file_after_processed` - when an intermediary Parquet file is created and loaded to ClickHouse via HTTP, it stays on disk as a leftover. If you are not interested in keeping this around anymore, by this parameter a Parquet file is removed from disk after the ingestion is complete.
+
+Look at the complete command for this transformation in `transform.sh` script in `examples` directory.
+
+=== ClickHouseMemorySink
+
+Memory sink will transform data into Arrow Stream, then flush it to a buffer,
+that buffer is set via HTTP to ClickHouse as ClickHouse can ingest Arrow Stream data. As one buffer is being sent, another buffer is populated by Arrow Stream data which contain converted SSTable data. That way, as soon as data are sent over HTTP, we have another buffer to sent again as it was populated in the background, we will speed up the delivery.
+
+----
+name=com.instaclustr.transformer.clickhouse.ClickHouseMemorySink
+endpoint=http://172.19.0.3:8123
+username=clickhouse
+password=clickhouse
+database=clickhouse_db
+table=shuffled_text
+sink_model=async_byte_buffer
+max_rows_before_sink=200000
+----
+
+* `sink_model` - async_byte_buffer - currently the only valid value
+* `max_rows_before_sink` - how much rows we should process into a buffer until it is sent over to ClickHouse. Based on your data, you need to change this parameter accordingly to not run out of memory.
+
+Please consult the concrete examples in `transform.sh` script in `examples` directory.
