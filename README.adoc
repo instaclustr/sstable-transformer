@@ -31,7 +31,7 @@ invokes the tool.
 If you want to also run tests, you do:
 
 ----
-./scripts/build-dtest-jars.sh
+./core/scripts/build-dtest-jars.sh
 # then, for 5.0
 ./mvnw clean test -Dtransformer.cassandra.version=5.0
 # or for 4.1
@@ -42,8 +42,10 @@ If you want to also run tests, you do:
 
 The tool has two subcommands for now, called `transform` and `partitions`.
 
+The commands below are executed in `core` directory.
+
 ----
-$ java -jar target/sstable-transformer-1.0.0-bundled.jar help
+$ java -jar target/sstable-transformer-core-2.0.0-bundled.jar help
 Usage: transformer [-hV] [COMMAND]
 Transforms Cassandra SSTable to Parquet or Avro file
   -h, --help      Show this help message and exit.
@@ -228,7 +230,7 @@ you can also see how it is used in `./run.sh` script.
 SSTables remotely on Cassandra nodes, streamed by Sidecars.
 
 ----
-java -jar target/sstable-transformer-1.0.0-bundled.jar transform \
+java -jar target/sstable-transformer-core-2.0.0-bundled.jar transform \
   --keyspace=spark_test \
   --table=test3 \
   --output="/tmp/output-dir" \
@@ -274,7 +276,7 @@ val partitions = CassandraPartitionsResolver.partitions("dc1", "spark_test", "sp
 or you can invoke this tool like this:
 
 ----
-$ java -jar target/sstable-transformer-1.0.0-bundled.jar partitions \
+$ java -jar target/sstable-transformer-core-2.0.0-bundled.jar partitions \
     --dc=dc1 \
     --keyspace=spark_test \
     --sidecar=sidecar-1:9043
@@ -325,21 +327,26 @@ You can produce deb and rpm packages by `-Pdeb` and `-Prpm` profile respectively
 ==== Complete help
 
 ----
- $ java -jar target/sstable-transformer-1.0.0-bundled.jar transform help
+ $ java -jar target/sstable-transformer-core-2.0.0-bundled.jar transform help
 Usage: transformer transform [--bloom-filter] [--keep-snapshot] [--sorted]
+                             [--cassandra-version=<cassandraVersion>]
                              [--compression=<compression>]
                              [--create-table-statement=<createTableStmt>]
                              [--keyspace=<keyspace>]
                              [--max-rows-per-file=<maxRowsPerFile>]
-                             --output=<output> [--output-format=<outputFormat>]
+                             [--output=<output>]
+                             [--output-format=<outputFormat>]
                              [--parallelism=<parallelism>]
                              [--partitions=<partitions>]
+                             [--sink-config=<sinkConfig>]
                              [--strategy=<transformationStrategy>]
                              [--table=<table>] [--input=<input>...]...
                              [--sidecar=<sidecar>...]... [COMMAND]
 Transform SSTables to Parquet or Avro files.
       --bloom-filter       Flag for telling whether bloom filter should be used
                              upon writing of a Parquet file.
+      --cassandra-version=<cassandraVersion>
+                           FIVEZERO or FOURZERO, defaults to FIVEZERO
       --compression=<compression>
                            Use compression for output files, it can be
                              UNCOMPRESSED, SNAPPY, ZSTD.
@@ -359,7 +366,8 @@ Transform SSTables to Parquet or Avro files.
                            Maximal number of rows per file. Has to be bigger
                              than 0. Defaults to undefined which will put all
                              rows to one file.
-      --output=<output>    Output file or destination
+      --output=<output>    Output file or destination, relevant when not using
+                             ARROW_STREAM format.
       --output-format=<outputFormat>
                            Output format of data, either AVRO or PARQUET
       --parallelism=<parallelism>
@@ -371,6 +379,9 @@ Transform SSTables to Parquet or Avro files.
                              to all partitions.
       --sidecar=<sidecar>...
                            List of sidecar hostnames with ports.
+      --sink-config=<sinkConfig>
+                           Configuration file for a sink. Each sink is
+                             responsible for parsing its content.
       --sorted             Flag for telling whether rows in each file should be
                              sorted or not. Use with caution as sorting will
                              happen in memory and all Spark rows will be held
@@ -389,10 +400,11 @@ Transform SSTables to Parquet or Avro files.
                              for local data layer.
 Commands:
   help  Display help information about the specified command.
+
 ----
 
 ----
- java -jar target/sstable-transformer-1.0.0-bundled.jar help partitions
+ java -jar target/sstable-transformer-core-2.0.0-bundled.jar help partitions
 Usage: transformer partitions --dc=<dc> --keyspace=<keyspace> --rf=<rf>
                               --sidecar=<sidecar> [COMMAND]
 Realize how many Spark partitions your Cassandra ring consists of.

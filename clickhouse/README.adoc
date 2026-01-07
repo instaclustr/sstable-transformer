@@ -1,0 +1,24 @@
+== ClickHouse Sink
+
+ClickHouse Sink is a module which takes Avro / Parquet files created by transformation of data from Cassandra cluster, and it will "pipe it" to ClickHouse. The result of doing so is that it is possible to e.g. remotely scan a cluster (via Sidecars) on a physically distinct machine and on that very same machine, we insert such a data to ClickHouse running yet on different machines.
+
+This way, we can build a transformation pipeline while completely decoupling source and destination of data.
+
+[source,bash]
+----
+
+[] -> physically distinct machine
+
+[C* node 1 + Sidecar] \                    / [replica]
+[C* node 2 + Sidecar]  - > [transformer] ->  [ClickHouse node]
+[C* node 3 + Sidecar] /                    \ [replica]
+----
+
+ClickHouse Sink is a module which integrates with core transformation module via Java SPI by mere placing its jar to core's class path.
+
+Let's guide a reader through an extensive example.
+
+Let's imagine we have a running Cassandra cluster, each Cassandra node runs a Sidecar along to be able to read data remotely (from different machine). Sidecars are reachable by this transformer via HTTP.
+
+Then, we also have a running ClickHouse cluster this transformer can reach via its HTTP endpoint as well.
+

@@ -4,11 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.instaclustr</groupId>
-    <artifactId>sstable-transformer</artifactId>
-    <version>1.1.0</version>
+    <artifactId>sstable-transformer-parent</artifactId>
+    <version>2.0.0</version>
+    <packaging>pom</packaging>
 
-    <name>sstable-transformer</name>
-    <description>Transformer of SSTables from Cassandra to Parquet or Avro files</description>
+    <name>sstable-transformer-parent</name>
+    <description>Transformer of SSTables from Cassandra to Parquet or Avro files or various destinations</description>
     <url>https://github.com/instaclustr/cassandra-parquet-transformer</url>
 
     <properties>
@@ -18,7 +19,7 @@
         <maven.jar.plugin.version>3.1.1</maven.jar.plugin.version>
         <maven.javadoc.plugin.version>3.1.1</maven.javadoc.plugin.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.5.1</maven.surefire.plugin.version>
         <git.command.plugin.version>4.9.10</git.command.plugin.version>
         <nexus.staging.maven.plugin.version>1.6.8</nexus.staging.maven.plugin.version>
 
@@ -62,7 +63,8 @@
 
     <scm>
         <connection>scm:git:git://git@github.com:instaclustr/cassandra-parquet-transformer</connection>
-        <developerConnection>scm:git:ssh://github.com/instaclustr/cassandra-parquet-transformer.git</developerConnection>
+        <developerConnection>scm:git:ssh://github.com/instaclustr/cassandra-parquet-transformer.git
+        </developerConnection>
         <url>git://github.com/instaclustr/cassandra-parquet-transformer.git</url>
     </scm>
 
@@ -73,127 +75,14 @@
         </repository>
     </distributionManagement>
 
+    <modules>
+        <module>api</module>
+        <module>clickhouse</module>
+        <module>core</module>
+    </modules>
+
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.1</version>
-                <configuration>
-                    <argLine>
-                        -DSKIP_STARTUP_VALIDATIONS=true
-                        -Dfile.encoding=UTF-8
-                        -Djdk.attach.allowAttachSelf=true
-                        --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-                        --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
-                        --add-exports java.base/sun.nio.ch=ALL-UNNAMED
-                        --add-exports java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED
-                        --add-exports java.rmi/sun.rmi.registry=ALL-UNNAMED
-                        --add-exports java.rmi/sun.rmi.server=ALL-UNNAMED
-                        --add-exports java.sql/java.sql=ALL-UNNAMED
-                        --add-opens java.base/java.lang.module=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.loader=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.ref=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.math=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.module=ALL-UNNAMED
-                        --add-opens java.base/jdk.internal.util.jar=ALL-UNNAMED
-                        --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
-                    </argLine>
-                    <forkCount>1</forkCount>
-                    <reuseForks>false</reuseForks>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven.source.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.jar.plugin.version}</version>
-                <configuration>
-                    <outputDirectory>${outputDirectory}</outputDirectory>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Git-Commit>${git.commit.id}</Git-Commit>
-                            <Build-Time>${git.build.time}</Build-Time>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <version>${git.command.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>get-the-git-infos</id>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
-                    </generateGitPropertiesFilename>
-                    <includeOnlyProperties>
-                        <includeOnlyProperty>^git.build.(time|version)$</includeOnlyProperty>
-                        <includeOnlyProperty>^git.commit.id.(abbrev|full)$</includeOnlyProperty>
-                    </includeOnlyProperties>
-                    <commitIdGenerationMode>full</commitIdGenerationMode>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven.shade.plugin.version}</version>
-                <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                    <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.instaclustr.cassandra.Transformer</mainClass>
-                        </transformer>
-
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    </transformers>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -220,384 +109,29 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-build-requirements</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.8.4</version>
+                                </requireMavenVersion>
+                                <requireJavaVersion>
+                                    <version>11</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <finalName>sstable-transformer-bundled</finalName>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-shade-plugin</artifactId>
-                        <version>${maven.shade.plugin.version}</version>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>bundled</shadedClassifierName>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-analytics-core_spark3_2.12</artifactId>
-                    <version>0.2.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-analytics-sidecar-client</artifactId>
-                    <version>0.2.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>analytics-sidecar-vertx-client-all</artifactId>
-                    <version>0.2.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-catalyst_2.12</artifactId>
-                    <version>3.2.2</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>log4j</groupId>
-                            <artifactId>log4j</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-avro_2.12</artifactId>
-                    <version>3.2.2</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.parquet</groupId>
-                    <artifactId>parquet-common</artifactId>
-                    <version>1.12.2</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.parquet</groupId>
-                    <artifactId>parquet-avro</artifactId>
-                    <version>1.12.2</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                    <version>2.13.2</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>info.picocli</groupId>
-                    <artifactId>picocli</artifactId>
-                    <version>4.7.6</version>
-                </dependency>
-
-                <!-- logging -->
-                <dependency>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                    <version>2.0.17</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <version>1.7.30</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                    <version>1.5.18</version>
-                </dependency>
-
-                <!-- misses when starting 4.0 cluster for sidecar-->
-                <dependency>
-                    <groupId>io.dropwizard.metrics</groupId>
-                    <artifactId>metrics-core</artifactId>
-                    <version>4.2.15</version>
-                </dependency>
-
-                <!-- test -->
-
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-analytics-integration-framework_spark3_2.12</artifactId>
-                    <version>0.2.0</version>
-                    <scope>test</scope>
-                </dependency>
-
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_2.12</artifactId>
-                    <version>3.2.2</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>spark</id>
-            <build>
-                <finalName>sstable-transformer-spark</finalName>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-shade-plugin</artifactId>
-                        <version>${maven.shade.plugin.version}</version>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>spark</shadedClassifierName>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-analytics-core_spark3_2.12</artifactId>
-                    <version>0.2.0</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>software.amazon.awssdk</groupId>
-                            <artifactId>s3</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-analytics-sidecar-client</artifactId>
-                    <version>0.2.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>analytics-sidecar-vertx-client-all</artifactId>
-                    <version>0.2.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-catalyst_2.12</artifactId>
-                    <version>3.2.2</version>
-                    <scope>provided</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>log4j</groupId>
-                            <artifactId>log4j</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-avro_2.12</artifactId>
-                    <version>3.2.2</version>
-                    <!-- on purpose not provided -->
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.parquet</groupId>
-                    <artifactId>parquet-common</artifactId>
-                    <version>1.12.2</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.parquet</groupId>
-                    <artifactId>parquet-avro</artifactId>
-                    <version>1.12.2</version>
-                    <scope>provided</scope>
-                </dependency>
-
-                <dependency>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                    <version>2.13.2</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>info.picocli</groupId>
-                    <artifactId>picocli</artifactId>
-                    <version>4.7.6</version>
-                </dependency>
-
-                <!-- logging -->
-                <dependency>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                    <version>2.0.17</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <version>1.7.30</version>
-                </dependency>
-
-                <dependency>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                    <version>1.5.18</version>
-                </dependency>
-
-                <!-- misses when starting 4.0 cluster for sidecar-->
-                <dependency>
-                    <groupId>io.dropwizard.metrics</groupId>
-                    <artifactId>metrics-core</artifactId>
-                    <version>4.2.15</version>
-                </dependency>
-
-                <!-- test -->
-                <dependency>
-                    <groupId>org.apache.cassandra</groupId>
-                    <artifactId>cassandra-analytics-integration-framework_spark3_2.12</artifactId>
-                    <version>0.2.0</version>
-                    <scope>test</scope>
-                </dependency>
-
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_2.12</artifactId>
-                    <version>3.2.2</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>deb</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.vafer</groupId>
-                        <artifactId>jdeb</artifactId>
-                        <version>${version.jdeb}</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jdeb</goal>
-                                </goals>
-                                <configuration>
-                                    <name>${project.artifactId}</name>
-                                    <deb>${outputDirectory}/[[name]]_${project.version}.deb</deb>
-                                    <dataSet>
-                                        <data>
-                                            <src>${outputDirectory}/sstable-transformer-${project.version}-bundled.jar</src>
-                                            <dst>/usr/share/java/sstable-transformer-bundled.jar</dst>
-                                            <type>file</type>
-                                        </data>
-                                        <data>
-                                            <src>bin/sstable-transformer</src>
-                                            <type>file</type>
-                                            <mapper>
-                                                <type>perm</type>
-                                                <filemode>755</filemode>
-                                                <prefix>/usr/local/bin/</prefix>
-                                            </mapper>
-                                        </data>
-                                    </dataSet>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>rpm</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>de.dentrassi.maven</groupId>
-                        <artifactId>rpm</artifactId>
-                        <version>${version.rpm}</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>rpm</goal>
-                                </goals>
-                                <configuration>
-                                    <packageName>${project.artifactId}</packageName>
-                                    <group>Applications/Databases</group>
-                                    <packager>${maintainer}</packager>
-
-                                    <skipSigning>true</skipSigning>
-
-                                    <entries>
-                                        <entry>
-                                            <name>/usr/share/java/sstable-transformer-bundled.jar</name>
-                                            <file>${outputDirectory}/sstable-transformer-${project.version}-bundled.jar</file>
-                                        </entry>
-                                        <entry>
-                                            <name>/usr/local/bin/sstable-transformer</name>
-                                            <file>${project.basedir}/bin/sstable-transformer</file>
-                                            <mode>0755</mode>
-                                        </entry>
-                                    </entries>
-                                    <targetDir>${outputDirectory}</targetDir>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <!-- Use this profile when releasing. For example: "mvn clean deploy -P release" -->
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven.gpg.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus.staging.maven.plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <!--Use "mvn nexus-staging:release -P release" to push from the OSSRH staging repo to Maven Central-->
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>snapshotRepo</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <repositories>
-                <repository>
-                    <id>apache.snapshots</id>
-                    <name>Apache Development Snapshot Repository</name>
-                    <url>https://repository.apache.org/content/repositories/orgapachecassandra-1436</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
-
 </project>
