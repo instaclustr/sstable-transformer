@@ -229,7 +229,7 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-analytics-core_spark3_2.12</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                     <exclusions>
                         <exclusion>
                             <groupId>software.amazon.awssdk</groupId>
@@ -256,12 +256,12 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-analytics-sidecar-client</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>analytics-sidecar-vertx-client-all</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.spark</groupId>
@@ -333,7 +333,7 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-analytics-integration-framework_spark3_2.12</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                     <scope>test</scope>
                 </dependency>
 
@@ -370,7 +370,7 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-analytics-core_spark3_2.12</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                     <exclusions>
                         <exclusion>
                             <groupId>software.amazon.awssdk</groupId>
@@ -381,12 +381,12 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-analytics-sidecar-client</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>analytics-sidecar-vertx-client-all</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.spark</groupId>
@@ -461,7 +461,7 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-analytics-integration-framework_spark3_2.12</artifactId>
-                    <version>0.3.0</version>
+                    <version>0.4.0</version>
                     <scope>test</scope>
                 </dependency>
 
@@ -597,7 +597,7 @@
                 <repository>
                     <id>apache.snapshots</id>
                     <name>Apache Development Snapshot Repository</name>
-                    <url>https://repository.apache.org/content/repositories/orgapachecassandra-1436</url>
+                    <url>https://repository.apache.org/content/repositories/orgapachecassandra-1457</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
